@@ -1,34 +1,3 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-# name: Node.js CI
-
-# on:
-#   push:
-#     branches: [ "main" ]
-
-# jobs:
-#   build:
-
-#     runs-on: self-hosted
-
-#     strategy:
-#       matrix:
-#         node-version: [18.x, 20.x, 22.x]
-#         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
-#     steps:
-#     - uses: actions/checkout@v4
-#     - name: Use Node.js ${{ matrix.node-version }}
-#       uses: actions/setup-node@v4
-#       with:
-#         node-version: ${{ matrix.node-version }}
-#         cache: 'npm'
-#     - run: npm ci
-#     - run: |
-#              touch .env
-#              echo "${{ secrets.PROD_ENV_FILE }}" > .env
-
 name: Node.js CI
 
 on:
@@ -42,37 +11,48 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        # Node.js 버전 설정
 
     steps:
+      # Node.js 관련 설정
       - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+      
       - run: npm ci
+      
+      # .env 파일 설정
       - run: |
           touch .env
           echo "${{ secrets.PROD_ENV_FILE }}" > .env
           echo "${{ secrets.OPENAI_API_KEY }}" >> .env
+          echo "${{ secrets.API_KEY }}" >> .env
 
-      # Set up Python environment
+      # Python 가상 환경 설정 및 종속성 설치
       - name: Set up Python 3.12.6
         uses: actions/setup-python@v4
         with:
           python-version: '3.12.6'
 
-      # Create and activate Python virtual environment
       - name: Set up Python virtual environment
         run: |
           python -m venv venv
           source venv/bin/activate
 
-      # Install Python dependencies (if you have a requirements.txt file)
       - name: Install Python dependencies
         run: |
           source venv/bin/activate
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - run: pm2 restart BackendAPI
+      # Python 서버 실행 (pm2로 관리)
+      - name: Start Python weather server
+        run: |
+          source venv/bin/activate
+          pm2 start weather.py --name "python-weather-app"
+
+      # Node.js 서버 실행 (pm2로 관리)
+      - name: Start Node.js server
+        run: pm2 restart BackendAPI
