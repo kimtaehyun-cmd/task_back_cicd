@@ -38,9 +38,12 @@ app.post('/api/weather', async (req, res) => {
       return res.status(400).json({ error: 'City parameter is required' });
     }
     // Python 서버에 POST 요청으로 도시 이름 전달
-    const response = await axios.post('http://localhost:8000/weather', {
-      city,
-    });
+    const response = await axios.post(
+      'https://pythont.aiprojectt.com/api/weather',
+      {
+        city,
+      }
+    );
     res.json(response.data); // Python 서버로부터 받은 날씨 데이터를 클라이언트로 반환
   } catch (error) {
     res
