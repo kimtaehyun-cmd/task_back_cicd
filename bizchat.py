@@ -8,17 +8,14 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_community.document_loaders import TextLoader
 from langchain_community.document_loaders import DirectoryLoader
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.chat_models import ChatOpenAI
+from langchain_openai.embeddings import OpenAIEmbeddings
+from langchain_openai import ChatOpenAI
 from collections import Counter
 # from langchain.schema import Document  # Document 클래스 임포트
 
 from dotenv import load_dotenv
 load_dotenv()
 os.getenv("OPENAI_API_KEY")
-
-# 경로 추적을 위한 설정
-os.environ["PWD"] = os.getcwd()
 
 #출력의 인코딩을 utf-8로 설정한다
 sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
@@ -61,7 +58,7 @@ class UTF8TextLoader(TextLoader):
 
 
 # 기본적으로 Python은 Windows에서 cp949 인코딩을 사용하지만, 한글 텍스트 파일이 UTF-8로 인코딩된 경우 이 문제가 발생할 수 있습니다.
-loader = DirectoryLoader("./chat/data", glob="*.txt", loader_cls=UTF8TextLoader)
+loader = DirectoryLoader("./data", glob="*.txt", loader_cls=UTF8TextLoader)
 documents = loader.load()
 # print(len(documents))
 
@@ -136,8 +133,8 @@ rag_chain = (
 
 from langchain_teddynote.messages import stream_response
 
-recieved_question = sys.argv[1]
-# print("질문: ", recieved_question)
+recieved_question = sys.argv[1] # 노드에서 받은 질문
+# recieved_question = "청년을 위한 정책을 알려주세요"
 
 answer = rag_chain.stream(recieved_question)
 stream_response(answer)
