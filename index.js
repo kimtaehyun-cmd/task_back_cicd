@@ -12,7 +12,7 @@ app.use(express.json());
 
 // 기본 테스트용 라우트
 app.get('/', (req, res) => {
-  res.send('Hello World! Server is running on http://localhost:8080');
+  res.send('Hello World! Server is running on pythont.aiprojectt.com');
 });
 
 // /api/weather 엔드포인트 - GET 요청
@@ -20,7 +20,7 @@ app.get('/api/weather', async (req, res) => {
   try {
     const city = req.query.city || 'Seoul'; // 쿼리 파라미터에서 city 값을 받음
     const response = await axios.get(
-      `http://localhost:8000/weather?city=${city}`
+      `http://pythont.aiprojectt.com/weather?city=${city}`
     ); // Python 서버의 GET 방식 호출
     res.json(response.data); // Python 서버로부터 받은 날씨 데이터를 클라이언트로 반환
   } catch (error) {
