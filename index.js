@@ -20,9 +20,9 @@ app.get('/api/weather', async (req, res) => {
   try {
     const city = req.query.city || 'Seoul'; // 쿼리 파라미터에서 city 값을 받음
     const response = await axios.get(
-      `http://pythont.aiprojectt.com/weather?city=${city}`
-    ); // Python 서버의 GET 방식 호출
-    res.json(response.data); // Python 서버로부터 받은 날씨 데이터를 클라이언트로 반환
+      `http://127.0.0.1:8000/weather?city=${city}` // Python 서버의 GET 방식 호출 (localhost 사용)
+    );
+    res.json(response.data); // Python 서버로부터 받은 데이터를 클라이언트로 반환
   } catch (error) {
     res
       .status(500)
@@ -37,14 +37,13 @@ app.post('/api/weather', async (req, res) => {
     if (!city) {
       return res.status(400).json({ error: 'City parameter is required' });
     }
-    // Python 서버에 POST 요청으로 도시 이름 전달
-    const response = await axios.post(
-      'https://pythont.aiprojectt.com/api/weather',
-      {
-        city,
-      }
-    );
-    res.json(response.data); // Python 서버로부터 받은 날씨 데이터를 클라이언트로 반환
+
+    // Python 서버에 POST 요청을 보냄 (localhost 사용)
+    const response = await axios.post('http://127.0.0.1:8000/weather', {
+      city,
+    });
+
+    res.json(response.data); // Python 서버로부터 받은 데이터를 클라이언트로 반환
   } catch (error) {
     res
       .status(500)
@@ -60,7 +59,7 @@ app.post('/chat', (req, res) => {
     // 디플로이할때 환경
     const pythonPath = path.join(__dirname, 'venv', 'bin', 'python3');
 
-    // const pythonPath = path.join(__dirname, 'venv', 'Scripts', 'python.exe');
+    // const pythonPath = path.join(__dirname, 'venv', 'Scripts', 'python.exe'); // Windows 개발 환경용
 
     const result = spawn(pythonPath, [scriptPath, sendedQuestion]);
     let responseData = '';
