@@ -4,7 +4,7 @@ const axios = require('axios');
 const path = require('path');
 const spawn = require('child_process').spawn;
 
-const PORT = '8080';
+const PORT = '8080'; // Node.js 서버는 8080번 포트에서 실행
 const app = express();
 
 app.use(cors());
@@ -20,10 +20,11 @@ app.get('/api/weather', async (req, res) => {
   try {
     const city = req.query.city || 'Seoul'; // 쿼리 파라미터에서 city 값을 받음
     const response = await axios.get(
-      `http://127.0.0.1:8000/weather?city=${city}` // Python 서버의 GET 방식 호출 (localhost 사용)
+      `https://pythont.aiprojectt.com/weather?city=${city}` // Python 서버의 GET 방식 호출 (8000번 포트 사용)
     );
     res.json(response.data); // Python 서버로부터 받은 데이터를 클라이언트로 반환
   } catch (error) {
+    console.error('GET Request Error:', error.response?.data || error.message);
     res
       .status(500)
       .json({ error: 'Failed to fetch weather data from Python server' });
@@ -38,13 +39,17 @@ app.post('/api/weather', async (req, res) => {
       return res.status(400).json({ error: 'City parameter is required' });
     }
 
-    // Python 서버에 POST 요청을 보냄 (localhost 사용)
-    const response = await axios.post('http://127.0.0.1:8000/weather', {
-      city,
-    });
+    // Python 서버에 POST 요청을 보냄 (8000번 포트 사용)
+    const response = await axios.post(
+      'https://pythont.aiprojectt.com/weather',
+      {
+        city,
+      }
+    );
 
     res.json(response.data); // Python 서버로부터 받은 데이터를 클라이언트로 반환
   } catch (error) {
+    console.error('POST Request Error:', error.response?.data || error.message);
     res
       .status(500)
       .json({ error: 'Failed to fetch weather data from Python server' });
@@ -80,6 +85,7 @@ app.post('/chat', (req, res) => {
       }
     });
   } catch (error) {
+    console.error('POST Request Error:', error.response?.data || error.message);
     res.status(500).json({ error: error.message });
   }
 });
