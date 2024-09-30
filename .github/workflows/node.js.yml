@@ -11,7 +11,6 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-        # Node.js 버전 설정
 
     steps:
       # Node.js 관련 설정
@@ -23,7 +22,7 @@ jobs:
           cache: 'npm'
       
       - run: npm ci
-      
+
       # .env 파일 설정
       - run: |
           touch .env
@@ -47,11 +46,11 @@ jobs:
           source venv/bin/activate
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      # Python 서버 실행 (pm2로 관리)
+      # Python 서버 실행 (pm2로 관리) - 경로와 파일명을 Weather.py로 수정
       - name: Start Python weather server
         run: |
           source venv/bin/activate
-          pm2 start weather.py --name "python-weather-app"
+          pm2 start /home/ubuntu/actions-runner/_work/task_back_cicd/task_back_cicd/Weather.py --name "python-weather-app"
 
       # Node.js 서버 실행 (pm2로 관리)
       - name: Start Node.js server
