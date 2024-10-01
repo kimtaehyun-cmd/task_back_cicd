@@ -26,13 +26,11 @@ def get_weather(city_name):
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        city = sys.argv[1]  # Node.js에서 전달된 city 파라미터
-        print(f"Requesting weather for city: {city}")  # 요청 도시 출력
+        city = sys.argv[1]
         weather_data = get_weather(city)
         if weather_data:
-            print(json.dumps(weather_data))  # JSON 형식으로 날씨 데이터를 출력
+            sys.stdout.write(json.dumps(weather_data))  # JSON으로 출력
         else:
-            print(json.dumps({"error": "City not found"}))
+            sys.stdout.write(json.dumps({"error": "City not found"}))  # 에러도 JSON으로 출력
     else:
-        print(json.dumps({"error": "City parameter is missing"}))
-
+        sys.stdout.write(json.dumps({"error": "City parameter is missing"}))  # 파라미터가 없을 때 에러 처리
