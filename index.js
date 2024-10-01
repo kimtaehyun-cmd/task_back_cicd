@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
-const spawn = require('child_process').spawn;
+const { spawn } = require('child_process');
 
 const PORT = '8080'; // Node.js 서버는 8080번 포트에서 실행
 const app = express();
@@ -9,6 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// /api/weather 엔드포인트 - POST 요청 (Python 스크립트를 직접 실행)
 app.post('/api/weather', (req, res) => {
   const { city } = req.body;
 
@@ -16,43 +16,37 @@ app.post('/api/weather', (req, res) => {
     return res.status(400).json({ error: 'City parameter is required' });
   }
 
-  // Python 스크립트 경로 설정
-  const scriptPath = path.join(__dirname, 'Weather.py');
-  const pythonPath =
-    '/home/ubuntu/actions-runner/_work/task_back_cicd/task_back_cicd/venv/bin/python3'; // 가상환경의 Python 경로
+  // Python 스크립트를 실행하고 결과를 가져옴
+  const pythonProcess = spawn('python3', ['Weather.py', city]);
 
-  // Python 스크립트 실행
-  const pythonProcess = spawn(pythonPath, [scriptPath, city]);
+  let weatherData = '';
+  let errorOccurred = false;
 
-  let responseData = '';
-  let errorMessage = '';
-
+  // Python 스크립트의 stdout 데이터를 수집
   pythonProcess.stdout.on('data', (data) => {
-    responseData += data.toString();
-    console.log(`Python stdout: ${data.toString()}`); // Python 표준 출력 로그 확인
+    weatherData += data.toString();
   });
 
+  // Python 스크립트의 stderr에서 오류 메시지를 수집
   pythonProcess.stderr.on('data', (data) => {
-    errorMessage += data.toString();
-    console.error(`Python stderr: ${data.toString()}`); // Python 에러 로그 확인
+    console.error(`stderr: ${data}`);
+    errorOccurred = true; // 오류가 발생했음을 플래그로 설정
+    res.status(500).json({ error: `Python Error: ${data.toString()}` });
   });
 
+  // Python 프로세스가 종료된 후 응답 처리
   pythonProcess.on('close', (code) => {
-    if (code === 0) {
-      console.log(`Python response: ${responseData}`); // Python 응답 로그 출력
+    if (!errorOccurred && code === 0) {
       try {
-        const parsedData = JSON.parse(responseData);
-        res.status(200).json(parsedData);
+        res.status(200).json(JSON.parse(weatherData)); // Python 스크립트로부터 받은 데이터를 클라이언트로 반환
       } catch (error) {
-        console.error(`Failed to parse JSON: ${error.message}`);
-        res.status(500).json({ error: 'Failed to parse Python response' });
+        res.status(500).json({ error: 'Failed to parse weather data' });
       }
-    } else {
-      res.status(500).json({ error: `Python Error: ${errorMessage}` });
     }
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+// 서버 실행
+app.listen(PORT, () =>
+  console.log(`Server is running on http://localhost:${PORT}`)
+);
