@@ -23,7 +23,7 @@ app.post('/api/weather', (req, res) => {
   }
 
   // Python 스크립트 경로 설정
-  const scriptPath = path.join(__dirname, 'weather.py');
+  const scriptPath = path.join(__dirname, 'Weather.py'); // 대소문자 구분
   const pythonPath =
     '/home/ubuntu/actions-runner/_work/task_back_cicd/task_back_cicd/venv/bin/python3'; // 가상환경의 Python 경로
 
