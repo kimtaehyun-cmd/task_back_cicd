@@ -3,8 +3,8 @@ import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import requests
 from dotenv import load_dotenv
-from socket import SOL_SOCKET, SO_REUSEADDR  # 소켓 옵션 추가
 import sys
+from socket import SOL_SOCKET, SO_REUSEADDR  # 소켓 옵션 추가
 
 # .env 파일에서 환경 변수 로드
 load_dotenv()
@@ -78,6 +78,4 @@ def run():
     httpd.serve_forever()
 
 if __name__ == "__main__":
-    city = sys.argv[1]  # Node.js에서 전달한 'city' 이름
-    weather_data = get_weather(city)
-    print(json.dumps(weather_data))  # Node.js에서 받을 수 있게 출력
+    run()
