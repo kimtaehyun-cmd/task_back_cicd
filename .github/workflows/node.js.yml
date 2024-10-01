@@ -27,8 +27,8 @@ jobs:
       - run: |
           touch .env
           echo "${{ secrets.PROD_ENV_FILE }}" > .env
-          echo "${{ secrets.OPENAI_API_KEY }}" >> .env
-          echo "${{ secrets.API_KEY }}" >> .env
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+          echo "API_KEY=${{ secrets.API_KEY }}" >> .env
 
       # Python 가상 환경 설정 및 종속성 설치
       - name: Set up Python 3.12.6
@@ -46,12 +46,13 @@ jobs:
           source venv/bin/activate
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      # Python 서버 실행 (pm2로 관리) - 경로와 파일명을 Weather.py로 수정
+      # Python 서버 실행 (pm2로 관리) - Weather.py 파일을 pm2로 실행
       - name: Start Python weather server
         run: |
           source venv/bin/activate
           pm2 start /home/ubuntu/actions-runner/_work/task_back_cicd/task_back_cicd/Weather.py --name "python-weather-app"
 
-      # Node.js 서버 실행 (pm2로 관리)
+      # Node.js 서버 실행 (pm2로 관리) - BackendAPI를 pm2로 재시작
       - name: Start Node.js server
-      - run: pm2 restart BackendAPI
+        run: |
+          pm2 restart BackendAPI
