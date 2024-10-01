@@ -54,4 +54,4 @@ jobs:
 
       # Node.js 서버 실행 (pm2로 관리)
       - name: Start Node.js server
-        run: pm2 restart BackendAPI
+      - run: pm2 restart BackendAPI
