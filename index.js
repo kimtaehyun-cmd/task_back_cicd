@@ -64,7 +64,8 @@ app.post('/api/weather', (req, res) => {
   const pythonProcess = spawn(pythonPath, ['Weather.py', city]);
 
   let weatherData = '';
-  let errorOccurred = false;
+  let errorMessage = '';
+  let errorOccurred = false; // 오류가 발생했는지 여부를 플래그로 관리
 
   // Python 스크립트의 stdout 데이터를 수집
   pythonProcess.stdout.on('data', (data) => {
@@ -73,16 +74,17 @@ app.post('/api/weather', (req, res) => {
 
   // Python 스크립트의 stderr에서 오류 메시지를 수집
   pythonProcess.stderr.on('data', (data) => {
-    console.error(`stderr: ${data}`);
-    errorOccurred = true; // 오류가 발생했음을 플래그로 설정
-    res.status(500).json({ error: `Python Error: ${data.toString()}` });
+    errorMessage += data.toString();
+    errorOccurred = true;
   });
 
   // Python 프로세스가 종료된 후 응답 처리
   pythonProcess.on('close', (code) => {
-    if (!errorOccurred && code === 0) {
+    if (errorOccurred) {
+      res.status(500).json({ error: `Python Error: ${errorMessage}` }); // 오류 발생 시
+    } else if (code === 0) {
       try {
-        res.status(200).json(JSON.parse(weatherData)); // Python 스크립트로부터 받은 데이터를 클라이언트로 반환
+        res.status(200).json(JSON.parse(weatherData)); // 정상적으로 데이터가 처리되었을 때
       } catch (error) {
         res.status(500).json({ error: 'Failed to parse weather data' });
       }

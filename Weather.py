@@ -4,6 +4,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import requests
 from dotenv import load_dotenv
 from socket import SOL_SOCKET, SO_REUSEADDR  # 소켓 옵션 추가
+import sys
 
 # .env 파일에서 환경 변수 로드
 load_dotenv()
