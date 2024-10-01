@@ -45,32 +45,42 @@ app.get('/api/weather', (req, res) => {
 
 // /api/weather 엔드포인트 - POST 요청 (Python 스크립트를 실행)
 app.post('/api/weather', (req, res) => {
-  const { city } = req.body; // 요청 본문에서 city 값 받음
+  const { city } = req.body;
 
   if (!city) {
     return res.status(400).json({ error: 'City parameter is required' });
   }
 
-  // Python 스크립트를 실행하고 결과를 가져옴
-  const pythonProcess = spawn('python3', ['Weather.py', city]);
+  // Python 스크립트 경로 설정
+  const scriptPath = path.join(__dirname, 'weather.py');
+  const pythonPath =
+    '/home/ubuntu/actions-runner/_work/task_back_cicd/task_back_cicd/venv/bin/python3'; // 가상환경의 Python 경로
 
-  let weatherData = '';
+  // Python 스크립트 실행
+  const pythonProcess = spawn(pythonPath, [scriptPath, city]);
+
+  let responseData = '';
+  let errorMessage = '';
+
   pythonProcess.stdout.on('data', (data) => {
-    weatherData += data.toString();
+    responseData += data.toString();
   });
 
   pythonProcess.stderr.on('data', (data) => {
-    console.error(`stderr: ${data}`);
-    res
-      .status(500)
-      .json({ error: 'Failed to fetch weather data from Python script' });
+    errorMessage += data.toString();
+    console.error(`Python Error: ${data.toString()}`); // 오류 메시지 출력
   });
 
   pythonProcess.on('close', (code) => {
     if (code === 0) {
-      res.status(200).json(JSON.parse(weatherData)); // Python 스크립트로부터 받은 데이터를 클라이언트로 반환
+      try {
+        const parsedData = JSON.parse(responseData);
+        res.status(200).json(parsedData);
+      } catch (error) {
+        res.status(500).json({ error: 'Failed to parse Python response' });
+      }
     } else {
-      res.status(500).json({ error: `Python script exited with code ${code}` });
+      res.status(500).json({ error: `Python Error: ${errorMessage}` });
     }
   });
 });
