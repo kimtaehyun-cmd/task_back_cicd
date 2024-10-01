@@ -63,6 +63,7 @@ app.post('/api/weather', (req, res) => {
 
   pythonProcess.stdout.on('data', (data) => {
     responseData += data.toString();
+    console.log(`Python Response: ${data.toString()}`);
   });
 
   pythonProcess.stderr.on('data', (data) => {
@@ -71,6 +72,7 @@ app.post('/api/weather', (req, res) => {
   });
 
   pythonProcess.on('close', (code) => {
+    console.log(`Python process exited with code ${code}`);
     if (code === 0) {
       try {
         const parsedData = JSON.parse(responseData);
