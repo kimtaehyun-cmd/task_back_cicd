@@ -24,6 +24,7 @@ app.get('/api/weather', (req, res) => {
   let weatherData = '';
   pythonProcess.stdout.on('data', (data) => {
     weatherData += data.toString();
+    console.error(`Python Error: ${data.toString()}`);
   });
 
   pythonProcess.stderr.on('data', (data) => {
