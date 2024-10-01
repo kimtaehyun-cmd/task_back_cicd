@@ -92,6 +92,42 @@ app.post('/api/weather', (req, res) => {
   });
 });
 
+app.post('/chat', (req, res) => {
+  const question = req.body.question; // 클라이언트에서 보낸 질문
+
+  if (!question) {
+    return res.status(400).json({ error: 'Question parameter is required' });
+  }
+
+  // Python 스크립트를 실행하여 대답을 생성
+  const scriptPath = path.join(__dirname, 'bizchat.py');
+  const pythonPath =
+    '/home/ubuntu/actions-runner/_work/task_back_cicd/task_back_cicd/venv/bin/python3';
+
+  const pythonProcess = spawn(pythonPath, [scriptPath, question]);
+
+  let responseData = '';
+  let errorMessage = '';
+
+  pythonProcess.stdout.on('data', (data) => {
+    responseData += data.toString();
+  });
+
+  pythonProcess.stderr.on('data', (data) => {
+    errorMessage += data.toString();
+  });
+
+  pythonProcess.on('close', (code) => {
+    if (code === 0) {
+      res.status(200).json({ answer: responseData });
+    } else {
+      res
+        .status(500)
+        .json({ error: `Failed to process chat: ${errorMessage}` });
+    }
+  });
+});
+
 // 서버 실행
 app.listen(PORT, () =>
   console.log(`Server is running on http://localhost:${PORT}`)
