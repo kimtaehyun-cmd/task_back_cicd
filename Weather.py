@@ -76,5 +76,7 @@ def run():
     print("Python weather server is running on port 8001")
     httpd.serve_forever()
 
-if __name__ == '__main__':
-    run()
+if __name__ == "__main__":
+    city = sys.argv[1]  # Node.js에서 전달한 'city' 이름
+    weather_data = get_weather(city)
+    print(json.dumps(weather_data))  # Node.js에서 받을 수 있게 출력

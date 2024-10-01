@@ -1,8 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const axios = require('axios');
-const path = require('path');
-const spawn = require('child_process').spawn;
+const { spawn } = require('child_process');
 
 const PORT = '8080'; // Node.js 서버는 8080번 포트에서 실행
 const app = express();
@@ -15,74 +13,64 @@ app.get('/', (req, res) => {
   res.send('Hello World! Server is running on pythont.aiprojectt.com');
 });
 
-// /api/weather 엔드포인트 - GET 요청
-app.get('/api/weather', async (req, res) => {
-  try {
-    const city = req.query.city || 'Seoul'; // 쿼리 파라미터에서 city 값을 받음
-    const response = await axios.get(
-      `http://127.0.0.1:8000/weather?city=${city}` // Python 서버의 GET 방식 호출 (로컬 8000번 포트 사용)
-    );
-    res.json(response.data); // Python 서버로부터 받은 데이터를 클라이언트로 반환
-  } catch (error) {
-    console.error('GET Request Error:', error.response?.data || error.message);
+// /api/weather 엔드포인트 - GET 요청 (Python 스크립트를 직접 실행)
+app.get('/api/weather', (req, res) => {
+  const city = req.query.city || 'Seoul'; // 쿼리 파라미터에서 city 값을 받음
+
+  // Python 스크립트를 실행하고 결과를 가져옴
+  const pythonProcess = spawn('python3', ['Weather.py', city]);
+
+  let weatherData = '';
+  pythonProcess.stdout.on('data', (data) => {
+    weatherData += data.toString();
+  });
+
+  pythonProcess.stderr.on('data', (data) => {
+    console.error(`stderr: ${data}`);
     res
       .status(500)
-      .json({ error: 'Failed to fetch weather data from Python server' });
-  }
-});
+      .json({ error: 'Failed to fetch weather data from Python script' });
+  });
 
-// /api/weather 엔드포인트 - POST 요청
-app.post('/api/weather', async (req, res) => {
-  try {
-    const { city } = req.body; // 요청 본문에서 city 값 받음
-    if (!city) {
-      return res.status(400).json({ error: 'City parameter is required' });
+  pythonProcess.on('close', (code) => {
+    if (code === 0) {
+      res.status(200).json(JSON.parse(weatherData)); // Python 스크립트로부터 받은 데이터를 클라이언트로 반환
+    } else {
+      res.status(500).json({ error: `Python script exited with code ${code}` });
     }
-
-    // Python 서버에 POST 요청을 보냄 (로컬 8000번 포트 사용)
-    const response = await axios.post('http://127.0.0.1:8000/weather', {
-      city,
-    });
-
-    res.json(response.data); // Python 서버로부터 받은 데이터를 클라이언트로 반환
-  } catch (error) {
-    console.error('POST Request Error:', error.response?.data || error.message);
-    res
-      .status(500)
-      .json({ error: 'Failed to fetch weather data from Python server' });
-  }
+  });
 });
 
-// 채팅 문자열 요청 (기존 코드 유지)
-app.post('/chat', (req, res) => {
-  try {
-    const sendedQuestion = req.body.question;
-    const scriptPath = path.join(__dirname, 'bizchat.py');
-    // const pythonPath = path.join(__dirname, 'venv', 'bin', 'python3');
-    const pythonPath = path.join(__dirname, 'venv', 'Scripts', 'python.exe');
+// /api/weather 엔드포인트 - POST 요청 (Python 스크립트를 직접 실행)
+app.post('/api/weather', (req, res) => {
+  const { city } = req.body; // 요청 본문에서 city 값 받음
 
-    const result = spawn(pythonPath, [scriptPath, sendedQuestion]);
-    let responseData = '';
-    result.stdout.on('data', (data) => {
-      responseData += data.toString();
-    });
-    result.stderr.on('data', (data) => {
-      console.error(`stderr: ${data}`);
-      res.status(500).json({ error: data.toString() });
-    });
-    result.on('close', (code) => {
-      if (code === 0) {
-        res.status(200).json({ answer: responseData });
-      } else {
-        res
-          .status(500)
-          .json({ error: `Child process exited with code ${code}` });
-      }
-    });
-  } catch (error) {
-    console.error('POST Request Error:', error.response?.data || error.message);
-    res.status(500).json({ error: error.message });
+  if (!city) {
+    return res.status(400).json({ error: 'City parameter is required' });
   }
+
+  // Python 스크립트를 실행하고 결과를 가져옴
+  const pythonProcess = spawn('python3', ['Weather.py', city]);
+
+  let weatherData = '';
+  pythonProcess.stdout.on('data', (data) => {
+    weatherData += data.toString();
+  });
+
+  pythonProcess.stderr.on('data', (data) => {
+    console.error(`stderr: ${data}`);
+    res
+      .status(500)
+      .json({ error: 'Failed to fetch weather data from Python script' });
+  });
+
+  pythonProcess.on('close', (code) => {
+    if (code === 0) {
+      res.status(200).json(JSON.parse(weatherData)); // Python 스크립트로부터 받은 데이터를 클라이언트로 반환
+    } else {
+      res.status(500).json({ error: `Python script exited with code ${code}` });
+    }
+  });
 });
 
 // 서버 실행
