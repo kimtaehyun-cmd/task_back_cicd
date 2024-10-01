@@ -45,16 +45,15 @@ app.get('/api/weather', (req, res) => {
 
 // /api/weather 엔드포인트 - POST 요청 (Python 스크립트를 실행)
 app.post('/api/weather', (req, res) => {
-  const { city } = req.body;
+  const { city } = req.body; // 요청 본문에서 city 값 받기
 
   if (!city) {
     return res.status(400).json({ error: 'City parameter is required' });
   }
 
-  // Python 스크립트 경로 설정
-  const scriptPath = path.join(__dirname, 'weather.py');
+  const scriptPath = path.join(__dirname, 'Weather.py'); // Python 스크립트 경로
   const pythonPath =
-    '/home/ubuntu/actions-runner/_work/task_back_cicd/task_back_cicd/venv/bin/python3'; // 가상환경의 Python 경로
+    '/home/ubuntu/actions-runner/_work/task_back_cicd/task_back_cicd/venv/bin/python3'; // 가상환경 Python 경로
 
   // Python 스크립트 실행
   const pythonProcess = spawn(pythonPath, [scriptPath, city]);
