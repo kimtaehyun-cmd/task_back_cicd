@@ -13,13 +13,17 @@ API_KEY = os.getenv('API_KEY')  # OpenWeatherMap API 키를 .env 파일에서 �
 def get_weather(city_name):
     url = f'http://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={API_KEY}&units=metric'
     response = requests.get(url)
+    print(response.status_code)  # 응답 상태 코드 출력
+    print(response.text)         # 응답 본문 출력
     if response.status_code == 200:
         return response.json()
     return None
 
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         city = sys.argv[1]  # Node.js에서 전달된 도시명
+        print(f"City received: {city}")
         weather_data = get_weather(city)
         if weather_data:
             print(json.dumps(weather_data))  # JSON 형식으로 날씨 데이터를 출력
