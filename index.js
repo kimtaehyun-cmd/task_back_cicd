@@ -93,13 +93,12 @@ app.post('/api/weather', (req, res) => {
 });
 
 app.post('/chat', (req, res) => {
-  const question = req.body.question; // 클라이언트에서 보낸 질문
+  const question = req.body.question;
 
   if (!question) {
     return res.status(400).json({ error: 'Question parameter is required' });
   }
 
-  // Python 스크립트를 실행하여 대답을 생성
   const scriptPath = path.join(__dirname, 'bizchat.py');
   const pythonPath =
     '/home/ubuntu/actions-runner/_work/task_back_cicd/task_back_cicd/venv/bin/python3';
@@ -108,18 +107,27 @@ app.post('/chat', (req, res) => {
 
   let responseData = '';
   let errorMessage = '';
+  let errorOccurred = false;
 
+  // Python 스크립트로부터 stdout 데이터를 수신
   pythonProcess.stdout.on('data', (data) => {
     responseData += data.toString();
   });
 
+  // Python 스크립트로부터 stderr 데이터를 수신
   pythonProcess.stderr.on('data', (data) => {
     errorMessage += data.toString();
+    errorOccurred = true; // 오류가 발생했음을 플래그로 설정
   });
 
+  // Python 스크립트 실행이 종료된 후 응답 처리
   pythonProcess.on('close', (code) => {
-    if (code === 0) {
-      res.status(200).json({ answer: responseData });
+    if (!errorOccurred && code === 0) {
+      if (responseData) {
+        res.status(200).json({ answer: responseData });
+      } else {
+        res.status(500).json({ error: 'No data returned from Python script' });
+      }
     } else {
       res
         .status(500)
