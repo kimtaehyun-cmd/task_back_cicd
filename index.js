@@ -58,7 +58,8 @@ app.post('/chat', (req, res) => {
   try {
     const sendedQuestion = req.body.question;
     const scriptPath = path.join(__dirname, 'bizchat.py');
-    const pythonPath = path.join(__dirname, 'venv', 'bin', 'python3');
+    // const pythonPath = path.join(__dirname, 'venv', 'bin', 'python3');
+    const pythonPath = path.join(__dirname, 'venv', 'Scripts', 'python.exe');
 
     const result = spawn(pythonPath, [scriptPath, sendedQuestion]);
     let responseData = '';

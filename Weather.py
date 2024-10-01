@@ -3,6 +3,7 @@ import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import requests
 from dotenv import load_dotenv
+from socket import SOL_SOCKET, SO_REUSEADDR  # 소켓 옵션 추가
 
 # .env 파일에서 환경 변수 로드
 load_dotenv()
@@ -69,9 +70,10 @@ class WeatherRequestHandler(BaseHTTPRequestHandler):
 
 # 서버 실행 함수
 def run():
-    server_address = ('', 8000)  # 8000번 포트에서 서버 실행
+    server_address = ('0.0.0.0', 8001)  # 8001번 포트에서 모든 네트워크 인터페이스에서 요청 수락
     httpd = HTTPServer(server_address, WeatherRequestHandler)
-    print("Python weather server is running on port 8000")
+    httpd.socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)  # 소켓 재사용 옵션 설정
+    print("Python weather server is running on port 8001")
     httpd.serve_forever()
 
 if __name__ == '__main__':
